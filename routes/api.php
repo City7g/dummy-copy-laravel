@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\IntroController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\TagController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,4 @@ Route::group([], function () {
 })->name("intro");
 
 Route::apiResource("products", ProductController::class);
+Route::apiResource("tags", TagController::class);

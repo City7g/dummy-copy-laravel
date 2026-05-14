@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Product;
 use App\Models\User;
+use App\Models\Product;
+use App\Models\Tag;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -24,5 +25,6 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         Product::factory(10)->create();
+        Tag::factory(5)->create();
     }
 }
