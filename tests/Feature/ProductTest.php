@@ -11,6 +11,7 @@ function productPayload(array $overrides = []): array
             "price" => 99.99,
             "stock" => 10,
             "rating" => 5,
+            "tags" => [1, 2, 3],
         ],
         $overrides,
     );
@@ -20,7 +21,7 @@ describe("GET /api/products", function () {
     it(
         "returns paginated list of products with correct resource structure",
         function () {
-            Product::factory()->count(5)->create();
+            Product::factory(5)->create();
 
             $response = $this->getJson("/api/products");
 
@@ -32,6 +33,8 @@ describe("GET /api/products", function () {
                         "description",
                         "price",
                         "stock",
+                        "rating",
+                        "tags",
                         "created_at",
                         "updated_at",
                     ],
@@ -65,6 +68,7 @@ describe("GET /api/products/{id}", function () {
                     "description",
                     "price",
                     "stock",
+                    "tags",
                     "created_at",
                     "updated_at",
                 ],
@@ -89,11 +93,14 @@ describe("POST /api/products", function () {
             ->assertJsonPath("title", $payload["title"])
             ->assertJsonPath("price", $payload["price"])
             ->assertJsonPath("rating", $payload["rating"])
-            ->assertJsonPath("stock", $payload["stock"]);
+            ->assertJsonPath("stock", $payload["stock"])
+            ->assertJsonPath("tags");
 
         $this->assertDatabaseHas("products", [
             "title" => $payload["title"],
             "price" => $payload["price"],
+            "stock" => $payload["stock"],
+            "rating" => $payload["rating"],
         ]);
     });
 
@@ -112,6 +119,10 @@ describe("POST /api/products", function () {
         "price negative" => [productPayload(["price" => -1]), ["price"]],
         "stock not integer" => [productPayload(["stock" => "many"]), ["stock"]],
         "stock negative" => [productPayload(["stock" => -5]), ["stock"]],
+        "rating not numeric" => [productPayload(["rating" => "high"]), ["rating"]],
+        "rating out of range" => [productPayload(["rating" => 6]), ["rating"]],
+        "invalid tags" => [productPayload(["tags" => ["invalid"]]), ["tags.0"]],
+        "non-existent tags" => [productPayload(["tags" => [999]]), ["tags.0"]],
     ]);
 });
 
@@ -126,7 +137,8 @@ describe("PATCH/PUT /api/products/{id}", function () {
         $this->putJson("/api/products/{$product->id}", $payload)
             ->assertOk()
             ->assertJsonPath("title", "Updated Name")
-            ->assertJsonPath("price", 199.99);
+            ->assertJsonPath("price", 199.99)
+            ->assertJsonPath("tags", $payload["tags"]);
 
         $this->assertDatabaseHas("products", [
             "id" => $product->id,
