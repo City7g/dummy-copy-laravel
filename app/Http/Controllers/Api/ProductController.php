@@ -37,6 +37,8 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        $product->load("comments");
+
         return new ProductResource($product);
     }
 

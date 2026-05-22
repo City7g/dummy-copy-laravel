@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Product;
+use App\Models\Comment;
 use App\Models\Tag;
 
 function productPayload(array $overrides = []): array
@@ -44,6 +45,8 @@ describe("GET /api/products", function () {
                 "meta" => ["current_page", "total", "per_page", "last_page"],
             ]);
 
+            $response->assertJsonMissingPath("data.0.comments");
+
             expect($response->json("data"))->toHaveCount(5);
         },
     );
@@ -58,7 +61,9 @@ describe("GET /api/products", function () {
 
 describe("GET /api/products/{id}", function () {
     it("returns a single product with correct resource structure", function () {
-        $product = Product::factory()->create();
+        $product = Product::factory()
+            ->has(Comment::factory()->count(2))
+            ->create();
 
         $this->getJson("/api/products/{$product->id}")
             ->assertOk()
@@ -69,6 +74,7 @@ describe("GET /api/products/{id}", function () {
                     "description",
                     "price",
                     "stock",
+                    "comments" => ["*" => ["id", "body"]],
                     "tags" => ["*" => ["id", "name", "slug"]],
                     "created_at",
                     "updated_at",
