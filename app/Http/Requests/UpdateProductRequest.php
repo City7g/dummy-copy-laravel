@@ -26,8 +26,10 @@ class UpdateProductRequest extends FormRequest
             "title" => "string|min:3|max:255",
             "description" => "nullable|string",
             "price" => "numeric|min:0",
-            "rating" => "nullable|numeric|between:1,5",
+            "rating" => "numeric|between:1,5",
             "stock" => "integer|min:0",
+            "tags" => "nullable|array",
+            "tags.*" => ["integer", "exists:tags,id"],
         ];
     }
 }

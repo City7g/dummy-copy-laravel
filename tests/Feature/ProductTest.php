@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Product;
+use App\Models\Tag;
 
 function productPayload(array $overrides = []): array
 {
@@ -11,7 +12,7 @@ function productPayload(array $overrides = []): array
             "price" => 99.99,
             "stock" => 10,
             "rating" => 5,
-            "tags" => [1, 2, 3],
+            "tags" => [],
         ],
         $overrides,
     );
@@ -21,7 +22,7 @@ describe("GET /api/products", function () {
     it(
         "returns paginated list of products with correct resource structure",
         function () {
-            Product::factory(5)->create();
+            $products = Product::factory(5)->create();
 
             $response = $this->getJson("/api/products");
 
@@ -34,7 +35,7 @@ describe("GET /api/products", function () {
                         "price",
                         "stock",
                         "rating",
-                        "tags",
+                        "tags" => ["*" => ["id", "name", "slug"]],
                         "created_at",
                         "updated_at",
                     ],
@@ -68,7 +69,7 @@ describe("GET /api/products/{id}", function () {
                     "description",
                     "price",
                     "stock",
-                    "tags",
+                    "tags" => ["*" => ["id", "name", "slug"]],
                     "created_at",
                     "updated_at",
                 ],
@@ -84,17 +85,21 @@ describe("GET /api/products/{id}", function () {
 
 describe("POST /api/products", function () {
     it("creates a product and returns 201 with resource", function () {
-        $payload = productPayload();
+        $tags = Tag::factory(3)->create();
+
+        $payload = productPayload([
+            "tags" => $tags->pluck("id")->toArray(),
+        ]);
 
         $response = $this->postJson("/api/products", $payload);
 
         $response
             ->assertCreated()
-            ->assertJsonPath("title", $payload["title"])
-            ->assertJsonPath("price", $payload["price"])
-            ->assertJsonPath("rating", $payload["rating"])
-            ->assertJsonPath("stock", $payload["stock"])
-            ->assertJsonPath("tags");
+            ->assertJsonStructure(["data" => ["id", "tags"]])
+            ->assertJsonPath("data.title", $payload["title"])
+            ->assertJsonPath("data.price", $payload["price"])
+            ->assertJsonPath("data.rating", $payload["rating"])
+            ->assertJsonPath("data.stock", $payload["stock"]);
 
         $this->assertDatabaseHas("products", [
             "title" => $payload["title"],
@@ -119,7 +124,10 @@ describe("POST /api/products", function () {
         "price negative" => [productPayload(["price" => -1]), ["price"]],
         "stock not integer" => [productPayload(["stock" => "many"]), ["stock"]],
         "stock negative" => [productPayload(["stock" => -5]), ["stock"]],
-        "rating not numeric" => [productPayload(["rating" => "high"]), ["rating"]],
+        "rating not numeric" => [
+            productPayload(["rating" => "high"]),
+            ["rating"],
+        ],
         "rating out of range" => [productPayload(["rating" => 6]), ["rating"]],
         "invalid tags" => [productPayload(["tags" => ["invalid"]]), ["tags.0"]],
         "non-existent tags" => [productPayload(["tags" => [999]]), ["tags.0"]],
@@ -129,16 +137,20 @@ describe("POST /api/products", function () {
 describe("PATCH/PUT /api/products/{id}", function () {
     it("updates a product and returns the updated resource", function () {
         $product = Product::factory()->create();
+        $tags = Tag::factory(3)->create();
         $payload = productPayload([
             "title" => "Updated Name",
             "price" => 199.99,
+            "tags" => $tags->pluck("id")->toArray(),
         ]);
 
         $this->putJson("/api/products/{$product->id}", $payload)
-            ->assertOk()
-            ->assertJsonPath("title", "Updated Name")
-            ->assertJsonPath("price", 199.99)
-            ->assertJsonPath("tags", $payload["tags"]);
+            ->assertStatus(200)
+            ->assertJsonPath("data.title", "Updated Name")
+            ->assertJsonPath("data.price", 199.99)
+            ->assertJsonPath("data.tags.0.id", 1)
+            ->assertJsonPath("data.tags.1.id", 2)
+            ->assertJsonPath("data.tags.2.id", 3);
 
         $this->assertDatabaseHas("products", [
             "id" => $product->id,

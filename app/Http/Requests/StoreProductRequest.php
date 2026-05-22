@@ -22,12 +22,15 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        // dd($this);
         return [
             "title" => "required|string|min:3|max:255",
             "description" => "nullable|string",
             "price" => "required|numeric|min:0",
-            "rating" => "nullable|numeric|between:1,5",
+            "rating" => "required|numeric|between:1,5",
             "stock" => "required|integer|min:0",
+            "tags" => "array",
+            "tags.*" => ["integer", "exists:tags,id"],
         ];
     }
 }

@@ -27,7 +27,9 @@ class ProductController extends Controller
 
         $product = Product::create($validatedData);
 
-        return response()->json(new ProductResource($product), 201);
+        $product->tags()->sync($validatedData["tags"] ?? []);
+
+        return new ProductResource($product)->response()->setStatusCode(201);
     }
 
     /**
@@ -47,7 +49,9 @@ class ProductController extends Controller
 
         $product->update($validatedData);
 
-        return response()->json($product, 200);
+        $product->tags()->sync($validatedData["tags"] ?? []);
+
+        return new ProductResource($product)->response()->setStatusCode(200);
     }
 
     /**

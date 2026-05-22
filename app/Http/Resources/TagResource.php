@@ -18,8 +18,14 @@ class TagResource extends JsonResource
             "id" => $this->id,
             "name" => $this->name,
             "slug" => $this->slug,
-            "created_at" => $this->created_at,
-            "updated_at" => $this->updated_at,
+            "created_at" => $this->when(
+                $request->is("api/tags*"),
+                $this->created_at,
+            ),
+            "updated_at" => $this->when(
+                $request->is("api/tags*"),
+                $this->updated_at,
+            ),
         ];
     }
 }

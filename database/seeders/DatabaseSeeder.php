@@ -24,7 +24,11 @@ class DatabaseSeeder extends Seeder
         //     "email" => "test@example.com",
         // ]);
 
-        Product::factory(10)->create();
-        Tag::factory(5)->create();
+        $tags = Tag::factory(5)->create();
+        $products = Product::factory(10)->create();
+
+        foreach ($products as $product) {
+            $product->tags()->attach($tags->random(rand(1, 3))->pluck("id"));
+        }
     }
 }
