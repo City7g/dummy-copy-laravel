@@ -1,4 +1,5 @@
 <?php
+
 use App\Models\Tag;
 
 function tagPayload(array $overrides = []): array
@@ -12,6 +13,10 @@ function tagPayload(array $overrides = []): array
 }
 
 describe("GET /api/tags", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it(
         "returns paginated list of tags with correct resource structure",
         function () {
@@ -40,6 +45,10 @@ describe("GET /api/tags", function () {
 });
 
 describe("GET /api/tags/{id}", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("returns a single tag with correct resource structure", function () {
         $tag = Tag::factory()->create();
 
@@ -58,6 +67,10 @@ describe("GET /api/tags/{id}", function () {
 });
 
 describe("POST /api/tags", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("creates a tag and returns 201 with resource", function () {
         $payload = tagPayload();
 
@@ -85,6 +98,10 @@ describe("POST /api/tags", function () {
 });
 
 describe("PATCH/PUT /api/tags/{id}", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("updates a tag and returns the updated resource", function () {
         $tag = Tag::factory()->create();
         $payload = tagPayload([
@@ -107,6 +124,10 @@ describe("PATCH/PUT /api/tags/{id}", function () {
 });
 
 describe("DELETE /api/tags/{id}", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("deletes a tag and returns 204", function () {
         $tag = Tag::factory()->create();
 
@@ -118,4 +139,19 @@ describe("DELETE /api/tags/{id}", function () {
     it("returns 404 when deleting non-existent tag", function () {
         $this->deleteJson("/api/tags/999999")->assertNotFound();
     });
+});
+
+describe("auth guard", function () {
+    it("rejects unauthenticated requests", function (
+        string $method,
+        string $url,
+    ) {
+        $this->$method($url)->assertUnauthorized();
+    })->with([
+        ["getJson", "/api/tags"],
+        ["postJson", "/api/tags"],
+        ["getJson", "/api/tags/1"],
+        ["putJson", "/api/tags/1"],
+        ["deleteJson", "/api/tags/1"],
+    ]);
 });

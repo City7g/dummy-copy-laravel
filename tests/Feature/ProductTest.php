@@ -20,6 +20,10 @@ function productPayload(array $overrides = []): array
 }
 
 describe("GET /api/products", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it(
         "returns paginated list of products with correct resource structure",
         function () {
@@ -60,6 +64,10 @@ describe("GET /api/products", function () {
 });
 
 describe("GET /api/products/{id}", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("returns a single product with correct resource structure", function () {
         $product = Product::factory()
             ->has(Comment::factory()->count(2))
@@ -90,6 +98,10 @@ describe("GET /api/products/{id}", function () {
 });
 
 describe("POST /api/products", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("creates a product and returns 201 with resource", function () {
         $tags = Tag::factory(3)->create();
 
@@ -141,6 +153,10 @@ describe("POST /api/products", function () {
 });
 
 describe("PATCH/PUT /api/products/{id}", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("updates a product and returns the updated resource", function () {
         $product = Product::factory()->create();
         $tags = Tag::factory(3)->create();
@@ -174,6 +190,10 @@ describe("PATCH/PUT /api/products/{id}", function () {
 });
 
 describe("DELETE /api/products/{id}", function () {
+    beforeEach(function () {
+        actingAs();
+    });
+
     it("deletes a product and returns 204", function () {
         $product = Product::factory()->create();
 
@@ -185,4 +205,19 @@ describe("DELETE /api/products/{id}", function () {
     it("returns 404 when deleting non-existent product", function () {
         $this->deleteJson("/api/products/999999")->assertNotFound();
     });
+});
+
+describe("auth guard", function () {
+    it("rejects unauthenticated requests", function (
+        string $method,
+        string $url,
+    ) {
+        $this->$method($url)->assertUnauthorized();
+    })->with([
+        ["getJson", "/api/products"],
+        ["postJson", "/api/products"],
+        ["getJson", "/api/products/1"],
+        ["putJson", "/api/products/1"],
+        ["deleteJson", "/api/products/1"],
+    ]);
 });

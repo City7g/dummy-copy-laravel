@@ -28,7 +28,9 @@ Route::post("/auth/logout", [AuthController::class, "logout"])->middleware(
     "auth:sanctum",
 );
 
-Route::get("users", fn() => User::all());
-Route::apiResource("products", ProductController::class);
-Route::apiResource("comments", CommentController::class)->except("store");
-Route::apiResource("tags", TagController::class);
+Route::middleware("auth:sanctum")->group(function () {
+    Route::get("users", fn() => User::all());
+    Route::apiResource("products", ProductController::class);
+    Route::apiResource("comments", CommentController::class)->except("store");
+    Route::apiResource("tags", TagController::class);
+});
