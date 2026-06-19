@@ -18,12 +18,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
+        $users = User::factory(10)->create();
 
-        // User::factory()->create([
-        //     "name" => "Test User",
-        //     "email" => "test@example.com",
-        // ]);
+        $users[] = User::factory()->create([
+            "name" => "Admin",
+            "email" => "admin@example.com",
+            "password" => "123123123",
+        ]);
 
         $tags = Tag::factory(5)->create();
         $products = Product::factory(10)->create();
@@ -39,5 +40,7 @@ class DatabaseSeeder extends Seeder
         foreach ($products as $product) {
             $product->tags()->attach($tags->random(rand(1, 3))->pluck("id"));
         }
+
+        $users->last()->attach($products->first());
     }
 }
