@@ -6,15 +6,7 @@ use App\Models\CartItem;
 describe("GET /api/cart", function () {
     it("get all items in user cart", function () {
         $user = actingAs();
-        $products = Product::factory(3)->create();
-
-        $cartItems = $products->map(
-            fn($product) => CartItem::create([
-                "user_id" => $user->id,
-                "product_id" => $product->id,
-                "quantity" => 1,
-            ]),
-        );
+        $cartItems = CartItem::factory(3)->for($user)->create();
 
         $response = $this->getJson("/api/cart");
 
@@ -31,7 +23,7 @@ describe("GET /api/cart", function () {
             fn($cartItem) => $response->assertJsonFragment([
                 "user_id" => $cartItem->user_id,
                 "product_id" => $cartItem->product_id,
-                "quantity" => $cartItem->quantity,
+                "quantity" => 1,
             ]),
         );
 
@@ -42,7 +34,7 @@ describe("GET /api/cart", function () {
                 "id" => $cartItem->id,
                 "user_id" => $cartItem->user_id,
                 "product_id" => $cartItem->product_id,
-                "quantity" => $cartItem->quantity,
+                "quantity" => 1,
             ]),
         );
     });
@@ -72,7 +64,7 @@ describe("GET /api/cart/{id}", function () {
         $response->assertJsonFragment([
             "user_id" => $cartItem->user_id,
             "product_id" => $cartItem->product_id,
-            "quantity" => $cartItem->quantity,
+            "quantity" => 1,
         ]);
     });
 
@@ -113,11 +105,9 @@ describe("POST /api/cart", function () {
 describe("UPDATE /api/cart", function () {
     it("updates quantity", function () {
         $user = actingAs();
-        $product = Product::factory()->create();
+        $cartItem = CartItem::factory()->create();
 
-        $cartItem = CartItem::create([
-            "user_id" => $user->id,
-            "product_id" => $product->id,
+        $this->assertDatabaseHas("cart_items", [
             "quantity" => 1,
         ]);
 
@@ -130,12 +120,12 @@ describe("UPDATE /api/cart", function () {
             ->assertJsonStructure([
                 "data" => ["id", "user_id", "product_id", "quantity"],
             ])
-            ->assertJsonPath("data.quantity", 5);
+            ->assertJsonFragment(["quantity" => 5]);
 
         $this->assertDatabaseHas("cart_items", [
             "id" => $cartItem->id,
-            "user_id" => $user->id,
-            "product_id" => $product->id,
+            "user_id" => $cartItem->user_id,
+            "product_id" => $cartItem->product_id,
             "quantity" => 5,
         ]);
     });

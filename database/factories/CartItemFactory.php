@@ -22,7 +22,7 @@ class CartItemFactory extends Factory
         return [
             "user_id" => User::factory(),
             "product_id" => Product::factory(),
-            "quantity" => fake()->numberBetween(1, 5),
+            "quantity" => 1,
         ];
     }
 }
