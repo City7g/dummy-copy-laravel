@@ -61,13 +61,7 @@ describe("GET /api/cart", function () {
 describe("GET /api/cart/{id}", function () {
     it("get specific cart item", function () {
         $user = actingAs();
-        $product = Product::factory()->create();
-
-        $cartItem = CartItem::create([
-            "user_id" => $user->id,
-            "product_id" => $product->id,
-            "quantity" => 1,
-        ]);
+        $cartItem = CartItem::factory()->for($user)->create();
 
         $response = $this->getJson("/api/cart/{$cartItem->id}");
 
@@ -155,13 +149,9 @@ describe("UPDATE /api/cart", function () {
 describe("DELETE /api/cart/{id}", function () {
     it("deletes a cart item", function () {
         $user = actingAs();
-        $product = Product::factory()->create();
+        $cartItem = CartItem::factory()->for($user)->create();
 
-        $cartItem = CartItem::create([
-            "user_id" => $user->id,
-            "product_id" => $product->id,
-            "quantity" => 1,
-        ]);
+        $this->assertDatabaseCount("cart_items", 1);
 
         $this->deleteJson("/api/cart/{$cartItem->id}")->assertNoContent();
 
