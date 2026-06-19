@@ -1,12 +1,23 @@
 <?php
 
+use App\Models\User;
 use App\Models\Product;
 use App\Models\CartItem;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 
 describe("GET /api/cart", function () {
-    it("get all items in user cart", function () {
+    it("get only user cart items", function () {
         $user = actingAs();
-        $cartItems = CartItem::factory(3)->for($user)->create();
+        $otherUser = User::factory()->create();
+
+        $cartItems = CartItem::factory(6)
+            ->state(
+                new Sequence(
+                    ["user_id" => $user->id],
+                    ["user_id" => $otherUser->id],
+                ),
+            )
+            ->create();
 
         $response = $this->getJson("/api/cart");
 
@@ -19,7 +30,7 @@ describe("GET /api/cart", function () {
             ])
             ->assertJsonCount(3, "data");
 
-        $cartItems->each(
+        $cartItems->where("user_id", 1)->each(
             fn($cartItem) => $response->assertJsonFragment([
                 "user_id" => $cartItem->user_id,
                 "product_id" => $cartItem->product_id,
@@ -27,7 +38,7 @@ describe("GET /api/cart", function () {
             ]),
         );
 
-        $this->assertDatabaseCount("cart_items", 3);
+        $this->assertDatabaseCount("cart_items", 6);
 
         $cartItems->each(
             fn($cartItem) => $this->assertDatabaseHas("cart_items", [
@@ -39,8 +50,10 @@ describe("GET /api/cart", function () {
         );
     });
 
-    it("returns empty array when cart is empty", function () {
+    it("get empty cart", function () {
         actingAs();
+
+        CartItem::factory()->create();
 
         $this->getJson("/api/cart")
             ->assertOk()
@@ -51,7 +64,7 @@ describe("GET /api/cart", function () {
 });
 
 describe("GET /api/cart/{id}", function () {
-    it("get specific cart item", function () {
+    it("get specific my cart item", function () {
         $user = actingAs();
         $cartItem = CartItem::factory()->for($user)->create();
 
@@ -68,9 +81,17 @@ describe("GET /api/cart/{id}", function () {
         ]);
     });
 
-    it("returns 404 for non-existent cart item", function () {
+    it("get 404 if cart item does not exist", function () {
         actingAs();
+
         $this->getJson("/api/cart/999999")->assertNotFound();
+    });
+
+    it("get 404 if cart item not mine", function () {
+        actingAs();
+        $cartItem = CartItem::factory()->create();
+
+        $this->getJson("/api/cart/{$cartItem->id}")->assertNotFound();
     });
 });
 
@@ -89,11 +110,14 @@ describe("POST /api/cart", function () {
             ->assertJsonStructure([
                 "data" => ["id", "user_id", "product_id", "quantity"],
             ])
-            ->assertJsonPath("data.user_id", $user->id)
-            ->assertJsonPath("data.product_id", $product->id)
-            ->assertJsonPath("data.quantity", 2);
+            ->assertJsonFragment([
+                "user_id" => $user->id,
+                "product_id" => $product->id,
+                "quantity" => 2,
+            ]);
 
         $this->assertDatabaseCount("cart_items", 1);
+
         $this->assertDatabaseHas("cart_items", [
             "user_id" => $user->id,
             "product_id" => $product->id,
@@ -105,11 +129,7 @@ describe("POST /api/cart", function () {
 describe("UPDATE /api/cart", function () {
     it("updates quantity", function () {
         $user = actingAs();
-        $cartItem = CartItem::factory()->create();
-
-        $this->assertDatabaseHas("cart_items", [
-            "quantity" => 1,
-        ]);
+        $cartItem = CartItem::factory()->for($user)->create();
 
         $response = $this->patchJson("/api/cart/{$cartItem->id}", [
             "quantity" => 5,
@@ -123,8 +143,7 @@ describe("UPDATE /api/cart", function () {
             ->assertJsonFragment(["quantity" => 5]);
 
         $this->assertDatabaseHas("cart_items", [
-            "id" => $cartItem->id,
-            "user_id" => $cartItem->user_id,
+            "user_id" => $user->id,
             "product_id" => $cartItem->product_id,
             "quantity" => 5,
         ]);
@@ -132,7 +151,19 @@ describe("UPDATE /api/cart", function () {
 
     it("returns 404 for non-existent cart item", function () {
         actingAs();
-        $this->patchJson("/api/cart/999999")->assertNotFound();
+
+        $this->patchJson("/api/cart/999999", [
+            "quantity" => 5,
+        ])->assertNotFound();
+    });
+
+    it("get 404 if cart item not mine", function () {
+        actingAs();
+        $cartItem = CartItem::factory()->create();
+
+        $this->patchJson("/api/cart/{$cartItem->id}", [
+            "quantity" => 5,
+        ])->assertNotFound();
     });
 });
 
@@ -150,7 +181,15 @@ describe("DELETE /api/cart/{id}", function () {
 
     it("returns 404 for non-existent cart item", function () {
         actingAs();
+
         $this->deleteJson("/api/cart/999999")->assertNotFound();
+    });
+
+    it("get 404 if cart item not mine", function () {
+        actingAs();
+        $cartItem = CartItem::factory()->create();
+
+        $this->deleteJson("/api/cart/{$cartItem->id}")->assertNotFound();
     });
 });
 

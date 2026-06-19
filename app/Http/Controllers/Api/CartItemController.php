@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CartItemController extends Controller
 {
@@ -43,6 +44,8 @@ class CartItemController extends Controller
      */
     public function show(CartItem $cartItem)
     {
+        Gate::authorize("view", $cartItem);
+
         return response()->json(["data" => $cartItem]);
     }
 
@@ -51,6 +54,8 @@ class CartItemController extends Controller
      */
     public function update(Request $request, CartItem $cartItem)
     {
+        Gate::authorize("update", $cartItem);
+
         $validatedData = $request->validate([
             "product_id" => "int",
             "quantity" => "int",
@@ -66,6 +71,8 @@ class CartItemController extends Controller
      */
     public function destroy(CartItem $cartItem)
     {
+        Gate::authorize("delete", $cartItem);
+
         $cartItem->delete();
 
         return response()->noContent();
