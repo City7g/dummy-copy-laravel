@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\CartItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,4 +34,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::apiResource("products", ProductController::class);
     Route::apiResource("comments", CommentController::class)->except("store");
     Route::apiResource("tags", TagController::class);
+    Route::apiResource("cart", CartItemController::class)->parameters([
+        "cart" => "cartItem",
+    ]);
 });
