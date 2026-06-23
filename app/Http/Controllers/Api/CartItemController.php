@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CartItemResource;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +17,7 @@ class CartItemController extends Controller
     {
         $cartItems = request()->user()->cartItems()->get();
 
-        return response()->json(["data" => $cartItems]);
+        return CartItemResource::collection($cartItems);
     }
 
     /**
@@ -34,9 +35,7 @@ class CartItemController extends Controller
             "user_id" => $request->user()->id,
         ]);
 
-        return response()
-            ->json(["data" => $cartItem])
-            ->setStatusCode(201);
+        return new CartItemResource($cartItem)->response()->setStatusCode(201);
     }
 
     /**
@@ -46,7 +45,7 @@ class CartItemController extends Controller
     {
         Gate::authorize("view", $cartItem);
 
-        return response()->json(["data" => $cartItem]);
+        return new CartItemResource($cartItem);
     }
 
     /**
@@ -63,7 +62,7 @@ class CartItemController extends Controller
 
         $cartItem->update($validatedData);
 
-        return response()->json(["data" => $cartItem]);
+        return new CartItemResource($cartItem);
     }
 
     /**
