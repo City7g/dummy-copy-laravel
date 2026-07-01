@@ -70,10 +70,8 @@ describe("POST /api/auth/login", function () {
         $this->postJson("/api/auth/login", loginPayload($user, $password))
             ->assertOk()
             ->assertJsonStructure([
-                "data" => [
-                    "user" => ["id", "name", "email"],
-                    "token",
-                ],
+                "user" => ["id", "name", "email"],
+                "token",
             ])
             ->assertJsonMissingPath("user.password");
     });
