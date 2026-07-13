@@ -149,6 +149,17 @@ describe("UPDATE /api/cart", function () {
         ]);
     });
 
+    it("not allow change product_id", function () {
+        $user = actingAs();
+        $cartItem = CartItem::factory()->for($user)->create();
+        $product = Product::factory()->create();
+
+        $response = $this->patchJson("/api/cart/{$cartItem->id}", [
+            "product_id" => $product->id,
+            "quantity" => 5,
+        ])->assertJsonValidationErrors(['product_id']);
+    });
+
     it("returns 404 for non-existent cart item", function () {
         actingAs();
 

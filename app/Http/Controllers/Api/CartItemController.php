@@ -7,6 +7,7 @@ use App\Http\Resources\CartItemResource;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class CartItemController extends Controller
 {
@@ -56,7 +57,7 @@ class CartItemController extends Controller
         Gate::authorize("update", $cartItem);
 
         $validatedData = $request->validate([
-            "product_id" => "int",
+            "product_id" => "prohibited",
             "quantity" => "int",
         ]);
 
