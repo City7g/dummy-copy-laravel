@@ -2,32 +2,13 @@
 
 use App\Models\User;
 
-function registerPayload(array $overrides = []): array
-{
-    $password = $overrides["password"] ?? fake()->password();
-
-    return array_merge(
-        [
-            "name" => fake()->name(),
-            "email" => fake()->unique()->safeEmail(),
-            "password" => $password,
-            "password_confirmation" => $password,
-        ],
-        $overrides,
-    );
-}
-
-function loginPayload(User $user, string $password): array
-{
-    return [
-        "email" => $user->email,
-        "password" => $password,
-    ];
-}
-
 describe("POST /api/auth/register", function () {
     it("registers a new user and returns token", function () {
-        $payload = registerPayload();
+        $payload = [
+            "name" => fake()->name(),
+            "email" => fake()->unique()->safeEmail(),
+            "password" => fake()->password(),
+        ];
 
         $response = $this->postJson("/api/auth/register", $payload);
 
@@ -41,7 +22,10 @@ describe("POST /api/auth/register", function () {
             ->assertJsonPath("user.name", $payload["name"])
             ->assertJsonPath("user.email", $payload["email"]);
 
-        $this->assertDatabaseHas("users", ["email" => $payload["email"]]);
+        $this->assertDatabaseHas("users", [
+            "name" => $payload["name"],
+            "email" => $payload["email"],
+        ]);
     });
 
     it("fails with missing fields", function () {
@@ -53,10 +37,13 @@ describe("POST /api/auth/register", function () {
     it("fails when email is already taken", function () {
         $existing = User::factory()->create();
 
-        $this->postJson(
-            "/api/auth/register",
-            registerPayload(["email" => $existing->email]),
-        )
+        $payload = [
+            "name" => fake()->name(),
+            "email" => $existing->email,
+            "password" => fake()->password(),
+        ];
+
+        $this->postJson("/api/auth/register", $payload)
             ->assertUnprocessable()
             ->assertJsonValidationErrors(["email"]);
     });
@@ -67,7 +54,10 @@ describe("POST /api/auth/login", function () {
         $password = fake()->password();
         $user = User::factory()->create(["password" => $password]);
 
-        $this->postJson("/api/auth/login", loginPayload($user, $password))
+        $this->postJson("/api/auth/login", [
+            "email" => $user->email,
+            "password" => $password,
+        ])
             ->assertOk()
             ->assertJsonStructure([
                 "user" => ["id", "name", "email"],
@@ -79,10 +69,10 @@ describe("POST /api/auth/login", function () {
     it("returns 401 on invalid credentials", function () {
         $user = User::factory()->create();
 
-        $this->postJson(
-            "/api/auth/login",
-            loginPayload($user, "wrong-password"),
-        )
+        $this->postJson("/api/auth/login", [
+            "email" => $user->email,
+            "password" => "wrong password",
+        ])
             ->assertUnauthorized()
             ->assertJsonPath("message", "Invalid credentials.");
     });
