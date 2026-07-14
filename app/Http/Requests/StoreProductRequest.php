@@ -22,7 +22,6 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        // dd($this);
         return [
             "title" => "required|string|min:3|max:255",
             "description" => "nullable|string",

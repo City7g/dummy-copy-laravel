@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,13 +13,9 @@ class AuthController extends Controller
 {
     protected $userFields = ["id", "name", "email"];
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $credentials = $request->validate([
-            "name" => "required|string|min:3|max:255",
-            "email" => "required|email|unique:users,email",
-            "password" => "required|string|min:4",
-        ]);
+        $credentials = $request->validated();
 
         $user = User::create($credentials);
 
@@ -32,12 +30,9 @@ class AuthController extends Controller
         );
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            "email" => "required|email",
-            "password" => "required|string",
-        ]);
+        $credentials = $request->validated();
 
         if (!Auth::attempt($credentials)) {
             return response()->json(["message" => "Invalid credentials."], 401);
