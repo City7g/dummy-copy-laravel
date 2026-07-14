@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreProductRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,15 +22,9 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        // dd($this);
         return [
-            "title" => "required|string|min:3|max:255",
-            "description" => "nullable|string",
-            "price" => "required|numeric|min:0",
-            "rating" => "required|numeric|between:1,5",
-            "stock" => "required|integer|min:0",
-            "tags" => "array",
-            "tags.*" => ["integer", "exists:tags,id"],
+            "email" => "required|email",
+            "password" => "required|string",
         ];
     }
 }

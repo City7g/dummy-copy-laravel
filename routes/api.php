@@ -9,12 +9,6 @@ use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\CartItemController;
 
-/*
-|--------------------------------------------------------------------------
-| Product API Routes
-|--------------------------------------------------------------------------
-*/
-
 Route::group([], function () {
     Route::get("test", [IntroController::class, "test"])->name("test");
     Route::get("ip", [IntroController::class, "ip"])->name("ip");
