@@ -55,6 +55,42 @@ describe("GET /api/products", function () {
         },
     );
 
+    it("returns products filtered by a given field", function (
+        string $field,
+        mixed $value,
+    ) {
+        Product::factory()->create([
+            "title" => "Premium Wireless Mouse",
+            "description" => "Ergonomic wireless mouse with USB receiver",
+            "price" => 25,
+            "rating" => 1,
+            "stock" => 5,
+        ]);
+        Product::factory()->create([
+            "title" => fake()->words(3, true),
+            "description" => fake()->sentence(),
+            "price" => 80,
+            "rating" => 3,
+            "stock" => 0,
+        ]);
+
+        $response = $this->getJson("/api/products?filter[{$field}]={$value}");
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, "data")
+            ->assertJsonPath("data.0.{$field}", $value);
+    })->with([
+        "title" => ["title", "Premium Wireless Mouse"],
+        "description" => [
+            "description",
+            "Ergonomic wireless mouse with USB receiver",
+        ],
+        "price" => ["price", 25],
+        "rating" => ["rating", 1],
+        "stock" => ["stock", 5],
+    ]);
+
     it("returns empty data when no products exist", function () {
         $this->getJson("/api/products")
             ->assertOk()

@@ -7,15 +7,31 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return ProductResource::collection(Product::paginate());
+        $products = QueryBuilder::for(Product::class)
+            // ->allowedFilters(
+            //     AllowedFilter::custom("rating", new FiltersRating()),
+            // )
+            ->allowedFilters(
+                AllowedFilter::partial("title"),
+                AllowedFilter::partial("description"),
+                "price",
+                "stock",
+                "rating",
+            )
+            ->paginate();
+
+        return ProductResource::collection($products);
     }
 
     /**
