@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+STAGED_PHP="$(git diff --cached --name-only --diff-filter=ACMR -- '*.php' 2>/dev/null || true)"
+
+if [[ -z "$STAGED_PHP" ]]; then
+    exit 0
+fi
+
+PATTERN='middleware[[:space:]]*\([[:space:]]*["'"'"'][[:space:]]*["'"'"'][[:space:]]*\)'
+errors=()
+
+while IFS= read -r file; do
+    [[ -n "$file" && -f "$file" ]] || continue
+
+    while IFS= read -r match; do
+        line="${match%%:*}"
+        errors+=("$file:$line: empty middleware(\"\")")
+    done < <(grep -En "$PATTERN" "$file" 2>/dev/null || true)
+done <<< "$STAGED_PHP"
+
+if [[ ${#errors[@]} -gt 0 ]]; then
+    echo "Empty middleware is not allowed:" >&2
+
+    for error in "${errors[@]}"; do
+        echo "  - $error" >&2
+    done
+
+    exit 1
+fi
