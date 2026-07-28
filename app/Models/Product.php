@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Comment;
-use App\Models\Tag;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,14 +16,6 @@ class Product extends Model
     use HasFactory, Searchable;
 
     protected $fillable = ["title", "description", "price", "stock", "rating"];
-
-    public function toSearchableArray(): array
-    {
-        return [
-            "title" => $this->title,
-            "description" => $this->description,
-        ];
-    }
 
     protected function makeAllSearchableUsing(Builder $query): Builder
     {
@@ -42,14 +32,14 @@ class Product extends Model
         return $this->belongsToMany(Tag::class);
     }
 
-    #[SearchUsingPrefix(['id'])]
-    #[SearchUsingFullText(['title', 'description'])]
+    #[SearchUsingPrefix(["id"])]
+    #[SearchUsingFullText(["title", "description"])]
     public function toSearchableArray(): array
     {
         return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
+            "id" => $this->id,
+            "title" => $this->title,
+            "description" => $this->description,
         ];
     }
 }
