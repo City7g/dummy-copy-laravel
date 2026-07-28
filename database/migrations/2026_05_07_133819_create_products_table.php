@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->float("rating", 3)->default(0.0);
             $table->integer("stock")->default(0);
             $table->timestamps();
+            $table->fullText(['title', 'description']);
         });
     }
 
