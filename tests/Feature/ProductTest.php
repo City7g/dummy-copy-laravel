@@ -58,6 +58,7 @@ describe("GET /api/products", function () {
     it("returns products filtered by a given field", function (
         string $field,
         mixed $value,
+        ?string $expected = null,
     ) {
         Product::factory()->create([
             "title" => "Premium Wireless Mouse",
@@ -76,11 +77,16 @@ describe("GET /api/products", function () {
 
         $response = $this->getJson("/api/products?filter[{$field}]={$value}");
 
-        $response
-            ->assertOk()
-            ->assertJsonCount(1, "data")
-            ->assertJsonPath("data.0.{$field}", $value);
+        $response->assertOk()->assertJsonCount(1, "data");
+
+        if ($field === "search") {
+            return;
+        }
+
+        $response->assertJsonPath("data.0.{$field}", $value);
     })->with([
+        "search by title" => ["search", "Wireless"],
+        "search by description" => ["search", "Ergonomic"],
         "title" => ["title", "Premium Wireless Mouse"],
         "description" => [
             "description",

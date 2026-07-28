@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Comment;
 use App\Models\Tag;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,6 +18,19 @@ class Product extends Model
     use HasFactory, Searchable;
 
     protected $fillable = ["title", "description", "price", "stock", "rating"];
+
+    public function toSearchableArray(): array
+    {
+        return [
+            "title" => $this->title,
+            "description" => $this->description,
+        ];
+    }
+
+    protected function makeAllSearchableUsing(Builder $query): Builder
+    {
+        return $query;
+    }
 
     public function comments(): MorphMany
     {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Filters\FiltersSearch;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
@@ -19,12 +20,10 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $products = QueryBuilder::for(Product::class)
-            // ->allowedFilters(
-            //     AllowedFilter::custom("rating", new FiltersRating()),
-            // )
             ->allowedFilters(
                 AllowedFilter::partial("title"),
                 AllowedFilter::partial("description"),
+                AllowedFilter::custom("search", new FiltersSearch()),
                 "price",
                 "stock",
                 "rating",
