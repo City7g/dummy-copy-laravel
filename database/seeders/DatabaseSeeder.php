@@ -37,10 +37,10 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
-        foreach ($products as $product) {
-            $product->tags()->attach($tags->random(rand(1, 3))->pluck("id"));
-        }
+        // foreach ($products as $product) {
+        //     $product->tags()->attach($tags->random(rand(1, 3))->pluck("id"));
+        // }
 
-        $users->last()->attach($products->first());
+        // $users->last()->attach($products->first());
     }
 }
